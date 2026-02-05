@@ -179,10 +179,6 @@ function Quiz() {
             </div>
           </div>
         </div>
-
-        <div className="quiz-hint">
-          <p>💡 Select your answer to automatically move to the next question</p>
-        </div>
       </div>
     </div>
     </ClickSpark>

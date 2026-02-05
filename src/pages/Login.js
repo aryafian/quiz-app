@@ -92,7 +92,7 @@ function Login() {
         </div>
 
         <div className="login-footer">
-          <p>Powered by Open Trivia Database</p>
+          <p>Powered by Arya Fian Saputra</p>
         </div>
       </div>
     </div>
