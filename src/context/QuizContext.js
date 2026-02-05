@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const QuizContext = createContext();
 
@@ -11,6 +12,7 @@ export const useQuiz = () => {
 };
 
 export const QuizProvider = ({ children }) => {
+  const { user } = useAuth();
   const [quizConfig, setQuizConfig] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -18,23 +20,40 @@ export const QuizProvider = ({ children }) => {
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [quizStartTime, setQuizStartTime] = useState(null);
 
-  // Load saved state from localStorage on mount
+  // Helper to reset quiz state
+  const resetQuizState = () => {
+    setQuizConfig(null);
+    setQuestions([]);
+    setCurrentQuestionIndex(0);
+    setAnswers([]);
+    setTimeRemaining(null);
+    setQuizStartTime(null);
+  };
+
+  // Load saved state from localStorage when user changes
   useEffect(() => {
-    const savedState = localStorage.getItem('quizState');
-    if (savedState) {
-      const state = JSON.parse(savedState);
-      setQuizConfig(state.quizConfig);
-      setQuestions(state.questions);
-      setCurrentQuestionIndex(state.currentQuestionIndex);
-      setAnswers(state.answers);
-      setTimeRemaining(state.timeRemaining);
-      setQuizStartTime(state.quizStartTime);
+    if (user) {
+      const storageKey = `quizState_${user.username}`;
+      const savedState = localStorage.getItem(storageKey);
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        setQuizConfig(state.quizConfig);
+        setQuestions(state.questions);
+        setCurrentQuestionIndex(state.currentQuestionIndex);
+        setAnswers(state.answers);
+        setTimeRemaining(state.timeRemaining);
+        setQuizStartTime(state.quizStartTime);
+      } else {
+        // Reset state if no saved data for this user
+        resetQuizState();
+      }
     }
-  }, []);
+  }, [user]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
-    if (questions.length > 0) {
+    if (user && questions.length > 0) {
+      const storageKey = `quizState_${user.username}`;
       const state = {
         quizConfig,
         questions,
@@ -43,9 +62,9 @@ export const QuizProvider = ({ children }) => {
         timeRemaining,
         quizStartTime
       };
-      localStorage.setItem('quizState', JSON.stringify(state));
+      localStorage.setItem(storageKey, JSON.stringify(state));
     }
-  }, [quizConfig, questions, currentQuestionIndex, answers, timeRemaining, quizStartTime]);
+  }, [user, quizConfig, questions, currentQuestionIndex, answers, timeRemaining, quizStartTime]);
 
   const startQuiz = (config, quizQuestions) => {
     setQuizConfig(config);
@@ -70,13 +89,11 @@ export const QuizProvider = ({ children }) => {
   };
 
   const resetQuiz = () => {
-    setQuizConfig(null);
-    setQuestions([]);
-    setCurrentQuestionIndex(0);
-    setAnswers([]);
-    setTimeRemaining(null);
-    setQuizStartTime(null);
-    localStorage.removeItem('quizState');
+    resetQuizState();
+    if (user) {
+      const storageKey = `quizState_${user.username}`;
+      localStorage.removeItem(storageKey);
+    }
   };
 
   const calculateResults = () => {

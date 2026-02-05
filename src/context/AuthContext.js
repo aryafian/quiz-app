@@ -33,10 +33,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    const username = user?.username;
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('quizUser');
-    localStorage.removeItem('quizState');
+    // Remove quiz state for the logged out user
+    if (username) {
+      localStorage.removeItem(`quizState_${username}`);
+    }
   };
 
   return (
