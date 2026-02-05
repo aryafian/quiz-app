@@ -10,7 +10,7 @@ function QuizSetup() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { startQuiz, quizConfig, questions, resetQuiz } = useQuiz();
+  const { startQuiz, questions, resetQuiz } = useQuiz();
 
   const [config, setConfig] = useState({
     amount: 10,
