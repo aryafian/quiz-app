@@ -15,41 +15,88 @@ function Quiz() {
     timeRemaining,
     setTimeRemaining,
     answerQuestion,
-    quizConfig
+    quizConfig,
+    quizStartTime,
+    loading
   } = useQuiz();
 
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const toggleMenu = () => {
+    if (isMenuOpen) {
+      setIsClosing(true);
+      setTimeout(() => {
+        setIsMenuOpen(false);
+        setIsClosing(false);
+      }, 300);
+    } else {
+      setIsMenuOpen(true);
+    }
+  };
+
+  const handleMenuItemClick = (callback) => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsMenuOpen(false);
+      setIsClosing(false);
+      if (callback) callback();
+    }, 300);
+  };
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && !event.target.closest('.hamburger-menu') && !event.target.closest('.mobile-dropdown')) {
+        setIsClosing(true);
+        setTimeout(() => {
+          setIsMenuOpen(false);
+          setIsClosing(false);
+        }, 300);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (loading) return;
+    
     if (!questions || questions.length === 0) {
       navigate('/setup');
       return;
     }
 
-    // Timer countdown
+    if (!quizStartTime || !quizConfig) return;
+
+    // Timer countdown using actual timestamps to prevent drift when tab is inactive
     const timer = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          navigate('/results');
-          return 0;
-        }
-        return prev - 1;
-      });
+      const totalDuration = quizConfig.timeLimit * 60; // in seconds
+      const elapsedTime = Math.floor((Date.now() - quizStartTime) / 1000);
+      const remainingTime = totalDuration - elapsedTime;
+      
+      if (remainingTime <= 0) {
+        clearInterval(timer);
+        setTimeRemaining(0);
+        navigate('/results');
+      } else {
+        setTimeRemaining(remainingTime);
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [questions, navigate, setTimeRemaining]);
+  }, [questions, navigate, setTimeRemaining, quizStartTime, quizConfig, loading]);
 
   useEffect(() => {
-    // Check if quiz is complete
-    if (answers.length === questions.length) {
+    if (loading) return;
+    if (questions.length > 0 && answers.length === questions.length) {
       navigate('/results');
     }
-  }, [answers, questions, navigate]);
+  }, [answers, questions, navigate, loading]);
 
-  if (!questions || questions.length === 0) {
+  if (loading || !questions || questions.length === 0) {
     return null;
   }
 
@@ -118,17 +165,47 @@ function Quiz() {
           </div>
           <div className="navbar-actions">
             <div className="timer" style={{ color: getTimerColor() }}>
-              <span className="timer-icon">⏱️</span>
+              <span className="timer-icon">⏱</span>
               <span className="timer-text">{formatTime(timeRemaining)}</span>
             </div>
-            <button className="theme-toggle-small" onClick={toggleTheme}>
-              {theme === 'light' ? '🌙' : '☀️'}
+            <button className="theme-toggle-small desktop-only" onClick={toggleTheme}>
+              <img 
+                src={theme === 'light' ? '/assets/moon.png' : '/assets/sun.png'} 
+                alt={theme === 'light' ? 'Dark mode' : 'Light mode'}
+                className={theme === 'dark' ? 'icon-light' : ''}
+                style={{ width: '20px', height: '20px' }}
+              />
             </button>
-            <button className="btn btn-danger btn-small" onClick={handleEndSession}>
+            <button className="btn btn-danger btn-small desktop-only" onClick={handleEndSession}>
               End Session
             </button>
           </div>
+          <button 
+            className={`hamburger-menu ${isMenuOpen ? 'open' : ''}`}
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <div className="hamburger-line"></div>
+            <div className="hamburger-line"></div>
+          </button>
         </div>
+        {isMenuOpen && (
+          <div className={`mobile-dropdown ${isClosing ? 'closing' : 'open'}`}>
+            <div className="mobile-menu-item" onClick={toggleTheme}>
+              <img 
+                src={theme === 'light' ? '/assets/moon.png' : '/assets/sun.png'} 
+                alt={theme === 'light' ? 'Dark mode' : 'Light mode'}
+                className={theme === 'dark' ? 'icon-light' : ''}
+                style={{ width: '20px', height: '20px' }}
+              />
+              <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            </div>
+            <div className="mobile-menu-item" onClick={() => handleMenuItemClick(handleEndSession)}>
+              <span></span>
+              <span>End Session</span>
+            </div>
+          </div>
+        )}
       </nav>
 
       <div className="quiz-container">
@@ -168,12 +245,12 @@ function Quiz() {
 
           <div className="quiz-stats">
             <div className="stat">
-              <span className="stat-icon">✅</span>
+              <span className="stat-icon"></span>
               <span className="stat-label">Answered</span>
               <span className="stat-value">{answers.length}</span>
             </div>
             <div className="stat">
-              <span className="stat-icon">⏳</span>
+              <span className="stat-icon"></span>
               <span className="stat-label">Remaining</span>
               <span className="stat-value">{questions.length - answers.length}</span>
             </div>

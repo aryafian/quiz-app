@@ -22,6 +22,20 @@ function QuizSetup() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const toggleMenu = () => {
+    if (isMenuOpen) {
+      setIsClosing(true);
+      setTimeout(() => {
+        setIsMenuOpen(false);
+        setIsClosing(false);
+      }, 300);
+    } else {
+      setIsMenuOpen(true);
+    }
+  };
 
   useEffect(() => {
     // Fetch categories from Open Trivia DB
@@ -74,6 +88,30 @@ function QuizSetup() {
     return newArray;
   };
 
+  const handleMenuItemClick = (callback) => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsMenuOpen(false);
+      setIsClosing(false);
+      if (callback) callback();
+    }, 300);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && !event.target.closest('.hamburger-menu') && !event.target.closest('.mobile-dropdown')) {
+        setIsClosing(true);
+        setTimeout(() => {
+          setIsMenuOpen(false);
+          setIsClosing(false);
+        }, 300);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
   const handleResume = () => {
     navigate('/quiz');
   };
@@ -100,15 +138,62 @@ function QuizSetup() {
             <span>Quiz Master</span>
           </div>
           <div className="navbar-actions">
-            <span className="user-name">👋 {user?.username}</span>
-            <button className="theme-toggle-small" onClick={toggleTheme}>
-              {theme === 'light' ? '🌙' : '☀️'}
+            <span className="user-name desktop-only">
+              <img 
+                src="/assets/user.png" 
+                alt="User"
+                className={theme === 'dark' ? 'icon-light' : ''}
+                style={{ width: '20px', height: '20px', marginRight: '8px' }}
+              />
+              {user?.username}
+            </span>
+            <button className="theme-toggle-small desktop-only" onClick={toggleTheme}>
+              <img 
+                src={theme === 'light' ? '/assets/moon.png' : '/assets/sun.png'} 
+                alt={theme === 'light' ? 'Dark mode' : 'Light mode'}
+                className={theme === 'dark' ? 'icon-light' : ''}
+                style={{ width: '20px', height: '20px' }}
+              />
             </button>
-            <button className="btn btn-secondary btn-small" onClick={logout}>
+            <button className="btn btn-secondary btn-small desktop-only" onClick={logout}>
               Logout
             </button>
           </div>
+          <button 
+            className={`hamburger-menu ${isMenuOpen ? 'open' : ''}`}
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <div className="hamburger-line"></div>
+            <div className="hamburger-line"></div>
+          </button>
         </div>
+        {isMenuOpen && (
+          <div className={`mobile-dropdown ${isClosing ? 'closing' : 'open'}`}>
+            <div className="mobile-menu-item">
+              <img 
+                src="/assets/user.png" 
+                alt="User"
+                className={theme === 'dark' ? 'icon-light' : ''}
+                style={{ width: '20px', height: '20px' }}
+              />
+              <span className="mobile-user-name">{user?.username}</span>
+            </div>
+            <div className="mobile-menu-item" onClick={toggleTheme}>
+              <img 
+                src={theme === 'light' ? '/assets/moon.png' : '/assets/sun.png'} 
+                alt={theme === 'light' ? 'Dark mode' : 'Light mode'}
+                className={theme === 'dark' ? 'icon-light' : ''}
+                style={{ width: '20px', height: '20px' }}
+              />
+              <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            </div>
+            <div className="mobile-menu-item" onClick={() => handleMenuItemClick(logout)}>
+              <span></span>
+              <span>Logout</span>
+            </div>
+          </div>
+        )}
       </nav>
 
       <div className="container">
@@ -250,7 +335,7 @@ function QuizSetup() {
                 ) : (
                   <>
                     <span>Start Quiz</span>
-                    <span>🚀</span>
+                    <span></span>
                   </>
                 )}
               </button>

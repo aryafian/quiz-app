@@ -10,7 +10,12 @@ import Results from './pages/Results';
 import './App.css';
 
 function PrivateRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return null;
+  }
+  
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 

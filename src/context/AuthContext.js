@@ -13,6 +13,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('quizUser');
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }) => {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
     }
+    setLoading(false);
   }, []);
 
   const login = (username) => {
@@ -37,14 +39,14 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('quizUser');
-    // Remove quiz state for the logged out user
+    
     if (username) {
       localStorage.removeItem(`quizState_${username}`);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

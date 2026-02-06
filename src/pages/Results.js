@@ -8,12 +8,43 @@ import './Results.css';
 
 function Results() {
   const navigate = useNavigate();
-  const { questions, answers, calculateResults, resetQuiz, quizStartTime } = useQuiz();
+  const { questions, answers, calculateResults, resetQuiz, quizStartTime, loading } = useQuiz();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const toggleMenu = () => {
+    if (isMenuOpen) {
+      setIsClosing(true);
+      setTimeout(() => {
+        setIsMenuOpen(false);
+        setIsClosing(false);
+      }, 300);
+    } else {
+      setIsMenuOpen(true);
+    }
+  };
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && !event.target.closest('.hamburger-menu') && !event.target.closest('.mobile-dropdown')) {
+        setIsClosing(true);
+        setTimeout(() => {
+          setIsMenuOpen(false);
+          setIsClosing(false);
+        }, 300);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (loading) return;
+    
     if (!questions || questions.length === 0) {
       navigate('/setup');
       return;
@@ -24,9 +55,9 @@ function Results() {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     }
-  }, [questions, navigate, calculateResults]);
+  }, [questions, navigate, calculateResults, loading]);
 
-  if (!questions || questions.length === 0) {
+  if (loading || !questions || questions.length === 0) {
     return null;
   }
 
@@ -78,10 +109,36 @@ function Results() {
             <span className="logo-icon">🎯</span>
             <span>Quiz Master</span>
           </div>
-          <button className="theme-toggle-small" onClick={toggleTheme}>
-            {theme === 'light' ? '🌙' : '☀️'}
+          <button className="theme-toggle-small desktop-only" onClick={toggleTheme}>
+            <img 
+              src={theme === 'light' ? '/assets/moon.png' : '/assets/sun.png'} 
+              alt={theme === 'light' ? 'Dark mode' : 'Light mode'}
+              className={theme === 'dark' ? 'icon-light' : ''}
+              style={{ width: '20px', height: '20px' }}
+            />
+          </button>
+          <button 
+            className={`hamburger-menu ${isMenuOpen ? 'open' : ''}`}
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <div className="hamburger-line"></div>
+            <div className="hamburger-line"></div>
           </button>
         </div>
+        {isMenuOpen && (
+          <div className={`mobile-dropdown ${isClosing ? 'closing' : 'open'}`}>
+            <div className="mobile-menu-item" onClick={toggleTheme}>
+              <img 
+                src={theme === 'light' ? '/assets/moon.png' : '/assets/sun.png'} 
+                alt={theme === 'light' ? 'Dark mode' : 'Light mode'}
+                className={theme === 'dark' ? 'icon-light' : ''}
+                style={{ width: '20px', height: '20px' }}
+              />
+              <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            </div>
+          </div>
+        )}
       </nav>
 
       <div className="results-container">
@@ -126,7 +183,7 @@ function Results() {
           </div>
 
           <div className="time-taken">
-            <span className="time-icon">⏱️</span>
+            <span className="time-icon">⏱</span>
             <span>Time Taken: {formatTime(timeTaken)}</span>
           </div>
         </div>
@@ -187,7 +244,7 @@ function Results() {
         <div className="results-actions fade-in">
           <button className="btn btn-primary btn-large" onClick={handleNewQuiz}>
             <span>Start New Quiz</span>
-            <span>🚀</span>
+            <span></span>
           </button>
         </div>
       </div>

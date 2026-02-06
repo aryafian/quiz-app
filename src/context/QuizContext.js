@@ -12,15 +12,15 @@ export const useQuiz = () => {
 };
 
 export const QuizProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [quizConfig, setQuizConfig] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [timeRemaining, setTimeRemaining] = useState(null);
   const [quizStartTime, setQuizStartTime] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Helper to reset quiz state
   const resetQuizState = () => {
     setQuizConfig(null);
     setQuestions([]);
@@ -30,8 +30,10 @@ export const QuizProvider = ({ children }) => {
     setQuizStartTime(null);
   };
 
-  // Load saved state from localStorage when user changes
   useEffect(() => {
+    if (authLoading) return;
+    
+    setLoading(true);
     if (user) {
       const storageKey = `quizState_${user.username}`;
       const savedState = localStorage.getItem(storageKey);
@@ -41,16 +43,23 @@ export const QuizProvider = ({ children }) => {
         setQuestions(state.questions);
         setCurrentQuestionIndex(state.currentQuestionIndex);
         setAnswers(state.answers);
-        setTimeRemaining(state.timeRemaining);
         setQuizStartTime(state.quizStartTime);
+
+        if (state.quizStartTime && state.quizConfig) {
+          const totalDuration = state.quizConfig.timeLimit * 60;
+          const elapsedTime = Math.floor((Date.now() - state.quizStartTime) / 1000);
+          const remainingTime = totalDuration - elapsedTime;
+          setTimeRemaining(Math.max(0, remainingTime));
+        } else {
+          setTimeRemaining(state.timeRemaining);
+        }
       } else {
-        // Reset state if no saved data for this user
         resetQuizState();
       }
     }
-  }, [user]);
+    setLoading(false);
+  }, [user, authLoading]);
 
-  // Save state to localStorage whenever it changes
   useEffect(() => {
     if (user && questions.length > 0) {
       const storageKey = `quizState_${user.username}`;
@@ -71,7 +80,7 @@ export const QuizProvider = ({ children }) => {
     setQuestions(quizQuestions);
     setCurrentQuestionIndex(0);
     setAnswers([]);
-    setTimeRemaining(config.timeLimit * 60); // Convert minutes to seconds
+    setTimeRemaining(config.timeLimit * 60);
     setQuizStartTime(Date.now());
   };
 
@@ -126,6 +135,7 @@ export const QuizProvider = ({ children }) => {
       answers,
       timeRemaining,
       quizStartTime,
+      loading,
       setTimeRemaining,
       startQuiz,
       answerQuestion,

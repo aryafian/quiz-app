@@ -15,6 +15,16 @@
   z-index: 100;
 }
 
+.results-navbar .navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
 /* Main Container */
 .results-container {
   max-width: 900px;
@@ -404,8 +414,126 @@
   }
 }
 
+.hamburger-menu {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  z-index: 101;
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.hamburger-menu.open .hamburger-line:first-child {
+  transform: translateY(4px) rotate(45deg);
+}
+
+.hamburger-menu.open .hamburger-line:last-child {
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+.hamburger-menu:hover .hamburger-line {
+  background: var(--accent-primary);
+}
+
+.mobile-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  box-shadow: var(--card-shadow);
+  min-width: 200px;
+}
+
+.mobile-dropdown.open {
+  animation: slideDown 0.3s ease-out;
+}
+
+.mobile-dropdown.closing {
+  animation: slideUp 0.3s ease-out;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mobile-menu-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-menu-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.desktop-only {
+  display: inline-flex;
+}
+
+.icon-light {
+  filter: brightness(0) invert(1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .hamburger-menu {
+    display: flex;
+  }
+
+  .mobile-dropdown {
+    display: block;
+  }
+
   .results-container {
     padding: 2rem 1rem;
   }

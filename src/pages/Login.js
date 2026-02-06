@@ -39,7 +39,12 @@ function Login() {
     >
       <div className="login-page">
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'light' ? '🌙' : '☀️'}
+          <img 
+            src={theme === 'light' ? '/assets/moon.png' : '/assets/sun.png'} 
+            alt={theme === 'light' ? 'Dark mode' : 'Light mode'}
+            className={theme === 'dark' ? 'icon-light' : ''}
+            style={{ width: '24px', height: '24px' }}
+          />
         </button>
 
         <div className="login-container fade-in">
@@ -74,21 +79,6 @@ function Login() {
               <span></span>
             </button>
           </form>
-
-          <div className="login-features">
-            <div className="feature">
-              <span className="feature-icon">📚</span>
-              <span>Multiple Categories</span>
-            </div>
-            <div className="feature">
-              <span className="feature-icon">⏱️</span>
-              <span>Timed Challenges</span>
-            </div>
-            <div className="feature">
-              <span className="feature-icon">💾</span>
-              <span>Auto Save Progress</span>
-            </div>
-          </div>
         </div>
 
         <div className="login-footer">
