@@ -11,7 +11,6 @@ Aplikasi kuis interaktif berbasis web yang dibangun dengan React.js.
 
 ## Cara Menjalankan Aplikasi
 
-1. Clone repository
 ```bash
 git clone https://github.com/aryafian/quiz-app.git
 cd quiz-app
